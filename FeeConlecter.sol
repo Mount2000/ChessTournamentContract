@@ -17,13 +17,19 @@ contract FeeConlecter is Ownable , AccessControl{
         _;
     }
     function setPlatformFee(uint256 _platformFee) public onlyAdmin{
-        require(_platformFee >=0 , "_platformFee must greater than 0") ;
+        require(_platformFee >0 , "_platformFee must greater than 0") ;
         platformFee = _platformFee ;
         emit updatedPlatformFee(_platformFee);
     }
     function setRegistrationFee(uint256 _registrationFee) public onlyAdmin{
-        require(_registrationFee >=0 , "_registrationFee must greater than 0") ;
+        require(_registrationFee >0 , "_registrationFee must greater than 0") ;
         registrationFee=_registrationFee ;
         emit updatedRegistrationFee(_registrationFee);
+    }
+     function addAdmin(address account ) public onlyOwner {
+        grantRole(ADMINER, account) ;
+    }
+    function removeAdmin(address account ) public onlyOwner {
+        revokeRole(ADMINER, account)  ; 
     }
 }

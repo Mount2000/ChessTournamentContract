@@ -8,6 +8,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
 
+   address payable withdrawWallet;
+
     uint128 countPlayer;
     uint countArbiter;
     FeeConlecter feeConlecter;
@@ -16,12 +18,17 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         string username;
         address wallet;
         uint256 registrationFee;
-        uint8 typeplayer; 
+        uint8 typePlayer; 
     }
 
     struct arbiter{
         address wallet;
         bool status;
+    }
+
+    enum TypePlayer {
+        player,
+        arbiter
     }
 
     mapping (uint128 => player) public listPlayer;
@@ -31,7 +38,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
        string _username, 
        address _wallet, 
        uint256 _registrationFee, 
-       uint8 _typeplayer
+       uint8 _typePlayer
     );
 
     event CreateArbiter(
@@ -55,30 +62,43 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
 
+        withdrawWallet = payable(msg.sender);
         feeConlecter = new FeeConlecter();
     }
 
-    function createPlayer(string memory _username, uint8 _typeplayer) public{
+    function createPlayerOrArbiter(string memory _username, uint8 _typeplayer) public payable {
         uint256 _registrationFee = feeConlecter.registrationFee();
         require(msg.sender != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
-        require(_typeplayer>=0 && _typeplayer < 3 ,"Empty type");
+        require(_typeplayer>=0 && _typeplayer < 2 ,"Empty type");
         require(_registrationFee>0, "Fee must be greater than 0");
+        require(_registrationFee==msg.value,"Fee is not enough");
+
+        withdrawWallet.transfer(msg.sender.balance);
 
         listPlayer[countPlayer] = player(_username,msg.sender, _registrationFee, _typeplayer);
         countPlayer++;
 
         emit CreatePlayer(_username, msg.sender, _registrationFee, _typeplayer);
+
+        if(_typeplayer == uint8(TypePlayer.arbiter)){
+             _grantRole(ARBITER_ROLE, msg.sender);
+            listArbiter[countArbiter] = arbiter(msg.sender,true);
+            countArbiter++;
+
+            emit CreateArbiter(msg.sender);
+        }
+        
     }
 
-    function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
-        require(_wallet != address(0),"Address does not exist");
-        _grantRole(ARBITER_ROLE, _wallet);
-        listArbiter[countArbiter] = arbiter(_wallet,true);
-        countArbiter++;
+    // function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
+    //     require(_wallet != address(0),"Address does not exist");
+    //     _grantRole(ARBITER_ROLE, _wallet);
+    //     listArbiter[countArbiter] = arbiter(_wallet,true);
+    //     countArbiter++;
 
-        emit CreateArbiter(_wallet);
-    }
+    //     emit CreateArbiter(_wallet);
+    // }
 
 
      function updatePlayer(uint128 _countPlayer, string memory _username, uint8 _typeplayer) public{
@@ -89,7 +109,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         listPlayer[_countPlayer].wallet = msg.sender;
         listPlayer[_countPlayer].username = _username;
-        listPlayer[_countPlayer].typeplayer = _typeplayer;
+        listPlayer[_countPlayer].typePlayer = _typeplayer;
 
         emit UpdatePlayer(_countPlayer, _username, msg.sender, _typeplayer);
     }
@@ -103,4 +123,6 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         emit UpdateArbiter(_countArbiter, _wallet, _status);
     }
+
+      function deposit() public payable {}
 }

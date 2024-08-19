@@ -3,7 +3,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract Bookie is AccessControl,Ownable(msg.sender){
-    uint countPlayer;
+    uint128 countPlayer;
     uint countArbiter;
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
@@ -11,7 +11,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     struct player{
         string username;
         address wallet;
-        uint256 registerStationFee;
+        uint256 registrationFee;
         uint8 typeplayer; 
     }
 
@@ -26,7 +26,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     event CreatePlayer(
        string _username, 
        address _wallet, 
-       uint256 _registerStationFee, 
+       uint256 _registrationFee, 
        uint8 _typeplayer
     );
 
@@ -38,7 +38,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
        uint _countPlayer, 
        string _username, 
        address _wallet, 
-       uint256 _registerStationFee, 
+       uint256 _registrationFee, 
        uint8 _typeplayer
     );
 
@@ -52,16 +52,16 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         _grantRole(ADMIN_ROLE, msg.sender);
     }
 
-    function createPlayer(string memory _username, uint256 _registerStationFee, uint8 _typeplayer) public{
+    function createPlayer(string memory _username, uint256 _registrationFee, uint8 _typeplayer) public{
         require(msg.sender != address(0),"wallet does not exist");
         require(bytes(_username).length != 0,"empty username");
         require(_typeplayer>=0 && _typeplayer < 3 ,"empty type");
-        require(_registerStationFee>0, "fee must be greater than 0");
+        require(_registrationFee>0, "fee must be greater than 0");
 
-        listPlayer[countPlayer] = player(_username,msg.sender, _registerStationFee, _typeplayer);
+        listPlayer[countPlayer] = player(_username,msg.sender, _registrationFee, _typeplayer);
         countPlayer++;
 
-        emit CreatePlayer(_username, msg.sender, _registerStationFee, _typeplayer);
+        emit CreatePlayer(_username, msg.sender, _registrationFee, _typeplayer);
     }
 
     function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
@@ -74,19 +74,19 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
 
-     function updatePlayer(uint _countPlayer, string memory _username, uint256 _registerStationFee, uint8 _typeplayer) public{
+     function updatePlayer(uint _countPlayer, string memory _username, uint256 _registrationFee, uint8 _typeplayer) public{
         require(listPlayer[_countPlayer].wallet != address(0),"Player does not exist");
         require(msg.sender != address(0),"wallet does not exist");
         require(bytes(_username).length != 0,"empty username");
         require(_typeplayer>=0 && _typeplayer < 3 ,"empty type");
-        require(_registerStationFee>0, "fee must be greater than 0");
+        require(_registrationFee>0, "fee must be greater than 0");
 
         listPlayer[_countPlayer].wallet = msg.sender;
         listPlayer[_countPlayer].username = _username;
-        listPlayer[_countPlayer].registerStationFee = _registerStationFee;
+        listPlayer[_countPlayer].registrationFee = _registrationFee;
         listPlayer[_countPlayer].typeplayer = _typeplayer;
 
-        emit UpdatePlayer(_countPlayer, _username, msg.sender, _registerStationFee, _typeplayer);
+        emit UpdatePlayer(_countPlayer, _username, msg.sender, _registrationFee, _typeplayer);
     }
 
      function updateArbiter(uint _countArbiter, address _wallet, bool _status) public onlyRole(ADMIN_ROLE){

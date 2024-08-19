@@ -74,7 +74,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         require(_registrationFee>0, "Fee must be greater than 0");
         require(_registrationFee==msg.value,"Fee is not enough");
 
-        withdrawWallet.transfer(msg.sender.balance);
+        withdrawWallet.transfer(_registrationFee);
 
         listPlayer[countPlayer] = player(_username,msg.sender, _registrationFee, _typeplayer);
         countPlayer++;

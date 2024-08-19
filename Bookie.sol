@@ -87,6 +87,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"Address does not exist");
         _grantRole(ARBITER_ROLE, _wallet);
+        
         listArbiter[countArbiter] = arbiter(_wallet,true);
         countArbiter++;
 

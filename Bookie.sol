@@ -75,8 +75,6 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         require(_typeplayer>=0 && _typeplayer < 2 ,"Empty type");
         require(_registrationFee==msg.value,"Fee is not enough");
 
-        withdrawWallet.transfer(_registrationFee);
-
         listPlayer[countPlayer] = player(_username,msg.sender, _registrationFee, _typeplayer);
         countPlayer++;
 
@@ -84,10 +82,18 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         
     }
 
+    function withdrawWalletAdmin() public onlyRole(ADMIN_ROLE) {
+        require(withdrawWallet != address(0), "Withdraw wallet not set");
+
+        uint256 contractBalance = address(this).balance;
+        require(contractBalance > 0, "No balance to withdraw");
+
+        withdrawWallet.transfer(contractBalance);
+    }
+
     function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"Address does not exist");
         _grantRole(ARBITER_ROLE, _wallet);
-        
         listArbiter[countArbiter] = arbiter(_wallet,true);
         countArbiter++;
 
@@ -95,7 +101,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
 
-     function updatePlayerOrArbiter(uint128 _count, address _wallet, string memory _username, uint8 _typeplayer, bool _status) public onlyRole(ADMIN_ROLE){
+    function updatePlayerOrArbiter(uint128 _count, address _wallet, string memory _username, uint8 _typeplayer, bool _status) public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
         require(_typeplayer>=0 && _typeplayer < 2 ,"Empty type");

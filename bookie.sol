@@ -24,8 +24,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         bool status;
     }
 
-    mapping (uint countPlayer => player) public listPlayer;
-    mapping (uint countArbiter => arbiter) public listArbiter;
+    mapping (uint128 => player) public listPlayer;
+    mapping (uint => arbiter) public listArbiter;
 
     event CreatePlayer(
        string _username, 
@@ -82,7 +82,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
 
-     function updatePlayer(uint _countPlayer, string memory _username, uint256 _registrationFee, uint8 _typeplayer) public{
+     function updatePlayer(uint128 _countPlayer, string memory _username, uint256 _registrationFee, uint8 _typeplayer) public{
         require(listPlayer[_countPlayer].wallet != address(0),"Player does not exist");
         require(msg.sender != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");

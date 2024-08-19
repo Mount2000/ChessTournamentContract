@@ -120,7 +120,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
             listArbiter[_countArbiter].wallet = _wallet;
             listArbiter[_countArbiter].status = _status;
         }else{
-            delete listArbiter[_countArbiter];
+            _revokeRole(ARBITER_ROLE, _wallet);
         }
         emit UpdateArbiter(_countArbiter, _wallet, _status);
     }

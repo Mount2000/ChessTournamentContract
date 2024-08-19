@@ -42,7 +42,6 @@ contract Bookie is AccessControl,Ownable(msg.sender){
        uint _countPlayer, 
        string _username, 
        address _wallet, 
-       uint256 _registrationFee, 
        uint8 _typeplayer
     );
 
@@ -82,19 +81,17 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
 
-     function updatePlayer(uint128 _countPlayer, string memory _username, uint256 _registrationFee, uint8 _typeplayer) public{
+     function updatePlayer(uint128 _countPlayer, string memory _username, uint8 _typeplayer) public{
         require(listPlayer[_countPlayer].wallet != address(0),"Player does not exist");
         require(msg.sender != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
         require(_typeplayer>=0 && _typeplayer < 3 ,"Empty type");
-        require(_registrationFee>0, "Fee must be greater than 0");
 
         listPlayer[_countPlayer].wallet = msg.sender;
         listPlayer[_countPlayer].username = _username;
-        listPlayer[_countPlayer].registrationFee = _registrationFee;
         listPlayer[_countPlayer].typeplayer = _typeplayer;
 
-        emit UpdatePlayer(_countPlayer, _username, msg.sender, _registrationFee, _typeplayer);
+        emit UpdatePlayer(_countPlayer, _username, msg.sender, _typeplayer);
     }
 
      function updateArbiter(uint _countArbiter, address _wallet, bool _status) public onlyRole(ADMIN_ROLE){

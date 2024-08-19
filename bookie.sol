@@ -52,16 +52,16 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         _grantRole(ADMIN_ROLE, msg.sender);
     }
 
-    function createPlayer(string memory _username, address _wallet, uint256 _registerStationFee, uint8 _typeplayer) public{
-        require(_wallet != address(0),"wallet does not exist");
+    function createPlayer(string memory _username, uint256 _registerStationFee, uint8 _typeplayer) public{
+        require(msg.sender != address(0),"wallet does not exist");
         require(bytes(_username).length != 0,"empty username");
         require(_typeplayer>=0 && _typeplayer < 3 ,"empty type");
         require(_registerStationFee>0, "fee must be greater than 0");
 
-        listPlayer[countPlayer] = player(_username,_wallet, _registerStationFee, _typeplayer);
+        listPlayer[countPlayer] = player(_username,msg.sender, _registerStationFee, _typeplayer);
         countPlayer++;
 
-        emit CreatePlayer(_username, _wallet, _registerStationFee, _typeplayer);
+        emit CreatePlayer(_username, msg.sender, _registerStationFee, _typeplayer);
     }
 
     function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
@@ -74,19 +74,19 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
 
-     function updatePlayer(uint _countPlayer, string memory _username, address _wallet, uint256 _registerStationFee, uint8 _typeplayer) public{
+     function updatePlayer(uint _countPlayer, string memory _username, uint256 _registerStationFee, uint8 _typeplayer) public{
         require(listPlayer[_countPlayer].wallet != address(0),"Player does not exist");
-        require(_wallet != address(0),"wallet does not exist");
+        require(msg.sender != address(0),"wallet does not exist");
         require(bytes(_username).length != 0,"empty username");
         require(_typeplayer>=0 && _typeplayer < 3 ,"empty type");
         require(_registerStationFee>0, "fee must be greater than 0");
 
-        listPlayer[_countPlayer].wallet = _wallet;
+        listPlayer[_countPlayer].wallet = msg.sender;
         listPlayer[_countPlayer].username = _username;
         listPlayer[_countPlayer].registerStationFee = _registerStationFee;
         listPlayer[_countPlayer].typeplayer = _typeplayer;
 
-        emit UpdatePlayer(_countPlayer, _username, _wallet, _registerStationFee, _typeplayer);
+        emit UpdatePlayer(_countPlayer, _username, msg.sender, _registerStationFee, _typeplayer);
     }
 
      function updateArbiter(uint _countArbiter, address _wallet, bool _status) public onlyRole(ADMIN_ROLE){

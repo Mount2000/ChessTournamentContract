@@ -13,13 +13,38 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         uint8 typeplayer; 
     }
 
-     struct arbiter{
+    struct arbiter{
         address wallet;
         bool status;
     }
 
     mapping (uint countPlayer => player) public listPlayer;
     mapping (uint countArbiter => arbiter) public listArbiter;
+
+    event CreatePlayer(
+       string _username, 
+       address _wallet, 
+       uint256 _registerStationFee, 
+       uint8 _typeplayer
+    );
+
+    event CreateArbiter(
+       address _wallet
+    );
+
+    event UpdatePlayer(
+       uint _countPlayer, 
+       string _username, 
+       address _wallet, 
+       uint256 _registerStationFee, 
+       uint8 _typeplayer
+    );
+
+    event UpdateArbiter(
+      uint _countArbiter, 
+      address _wallet, 
+      bool _status
+    );
 
     function createPlayer(string memory _username, address _wallet, uint256 _registerStationFee, uint8 _typeplayer) public{
         require(_wallet != address(0),"wallet does not exist");
@@ -29,6 +54,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         listPlayer[countPlayer] = player(_username,_wallet, _registerStationFee,_typeplayer);
         countPlayer++;
+
+        emit CreatePlayer(_username, _wallet, _registerStationFee, _typeplayer);
     }
 
     function createArbiter(address _wallet) public onlyOwner{
@@ -36,6 +63,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         listArbiter[countArbiter] = arbiter(_wallet,true);
         countArbiter++;
+
+        emit CreateArbiter(_wallet);
     }
 
 
@@ -50,6 +79,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         listPlayer[_countPlayer].username = _username;
         listPlayer[_countPlayer].registerStationFee = _registerStationFee;
         listPlayer[_countPlayer].typeplayer = _typeplayer;
+
+        emit UpdatePlayer(_countPlayer, _username, _wallet, _registerStationFee, _typeplayer);
     }
 
      function updateArbiter(uint _countArbiter, address _wallet, bool _status) public onlyOwner{
@@ -58,5 +89,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         listArbiter[_countArbiter].wallet = _wallet;
         listArbiter[_countArbiter].status = _status;
+
+        emit UpdateArbiter(_countArbiter, _wallet, _status);
     }
 }

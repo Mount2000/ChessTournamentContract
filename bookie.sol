@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract Bookie is AccessControl,Ownable(msg.sender){
     uint countPlayer;
     uint countArbiter;
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
 
     struct player{
         string username;
@@ -46,21 +48,25 @@ contract Bookie is AccessControl,Ownable(msg.sender){
       bool _status
     );
 
+    constructor(){
+        _grantRole(ADMIN_ROLE, msg.sender);
+    }
+
     function createPlayer(string memory _username, address _wallet, uint256 _registerStationFee, uint8 _typeplayer) public{
         require(_wallet != address(0),"wallet does not exist");
         require(bytes(_username).length != 0,"empty username");
         require(_typeplayer>=0 && _typeplayer < 3 ,"empty type");
         require(_registerStationFee>0, "fee must be greater than 0");
 
-        listPlayer[countPlayer] = player(_username,_wallet, _registerStationFee,_typeplayer);
+        listPlayer[countPlayer] = player(_username,_wallet, _registerStationFee, _typeplayer);
         countPlayer++;
 
         emit CreatePlayer(_username, _wallet, _registerStationFee, _typeplayer);
     }
 
-    function createArbiter(address _wallet) public onlyOwner{
+    function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"address does not exist");
-
+        _grantRole(ARBITER_ROLE, _wallet);
         listArbiter[countArbiter] = arbiter(_wallet,true);
         countArbiter++;
 
@@ -83,7 +89,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         emit UpdatePlayer(_countPlayer, _username, _wallet, _registerStationFee, _typeplayer);
     }
 
-     function updateArbiter(uint _countArbiter, address _wallet, bool _status) public onlyOwner{
+     function updateArbiter(uint _countArbiter, address _wallet, bool _status) public onlyRole(ADMIN_ROLE){
         require(listArbiter[_countArbiter].wallet != address(0),"Player does not exist");
         require(_wallet != address(0),"address does not exist");
 

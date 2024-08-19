@@ -11,28 +11,24 @@ contract Bookie is AccessControl,Ownable(msg.sender){
    address payable withdrawWallet;
 
     uint128 countPlayer;
-    uint countArbiter;
-    FeeConlecter feeConlecter;
+    uint128 countArbiter;
+    FeeColector public feeConlecter;
 
-    struct player{
+    struct Player{
         string username;
         address wallet;
         uint256 registrationFee;
         uint8 typePlayer; 
     }
 
-    struct arbiter{
+    struct Arbiter{
         address wallet;
         bool status;
     }
 
-    enum TypePlayer {
-        player,
-        arbiter
-    }
-
-    mapping (uint128 => player) public listPlayer;
-    mapping (uint => arbiter) public listArbiter;
+    mapping(string => bool) private usernameExists;
+    mapping (uint128 => Player) public listPlayer;
+    mapping (uint128 => Arbiter) public listArbiter;
 
     event CreatePlayer(
        string _username, 
@@ -49,7 +45,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
        uint _countPlayer, 
        string _username, 
        address _wallet, 
-       uint8 _typeplayer
+       uint8 _typePlayer
     );
 
     event UpdateArbiter(
@@ -61,28 +57,31 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     constructor(
         address _feeConlecter
     ){
-        feeConlecter = FeeConlecter(_feeConlecter);
+        feeConlecter = FeeColector(_feeConlecter);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
 
         withdrawWallet = payable(msg.sender);
     }
 
-    function createPlayer(string memory _username, uint8 _typeplayer) public payable {
+    function createPlayer(string memory _username, uint8 _typePlayer) public payable {
         uint256 _registrationFee = feeConlecter.registrationFee();
         require(msg.sender != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
-        require(_typeplayer>=0 && _typeplayer < 2 ,"Empty type");
+        require(_typePlayer>=0 && _typePlayer < 2 ,"Empty type");
         require(_registrationFee==msg.value,"Fee is not enough");
+        require(!usernameExists[_username], "Username already exists");
 
-        listPlayer[countPlayer] = player(_username,msg.sender, _registrationFee, _typeplayer);
+        usernameExists[_username] = true;
+
+        listPlayer[countPlayer] = Player(_username,msg.sender, _registrationFee, _typePlayer);
         countPlayer++;
 
-        emit CreatePlayer(_username, msg.sender, _registrationFee, _typeplayer);
+        emit CreatePlayer(_username, msg.sender, _registrationFee, _typePlayer);
         
     }
 
-    function withdrawWalletAdmin() public onlyRole(ADMIN_ROLE) {
+    function withdrawWalletAdmin() public onlyOwner {
         require(withdrawWallet != address(0), "Withdraw wallet not set");
 
         uint256 contractBalance = address(this).balance;
@@ -94,44 +93,37 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     function createArbiter(address _wallet) public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"Address does not exist");
         _grantRole(ARBITER_ROLE, _wallet);
-        listArbiter[countArbiter] = arbiter(_wallet,true);
+        listArbiter[countArbiter] = Arbiter(_wallet,true);
         countArbiter++;
 
         emit CreateArbiter(_wallet);
     }
 
-
-    function updatePlayerOrArbiter(uint128 _count, address _wallet, string memory _username, uint8 _typeplayer, bool _status) public onlyRole(ADMIN_ROLE){
+    function updatePlayer(uint128 _countPlayer, address _wallet, string memory _username, uint8 _typePlayer) public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
-        require(_typeplayer>=0 && _typeplayer < 2 ,"Empty type");
+        require(_typePlayer>=0 && _typePlayer < 2 ,"Empty type");
+        require(listPlayer[_countPlayer].wallet != address(0),"Player does not exist");
 
-        if(_typeplayer==uint8(TypePlayer.player)){
-            require(listPlayer[_count].wallet != address(0),"Player does not exist");
-            listPlayer[_count].wallet = _wallet;
-            listPlayer[_count].username = _username;
-            listPlayer[_count].typePlayer = _typeplayer;
+        listPlayer[_countPlayer].wallet = _wallet;
+        listPlayer[_countPlayer].username = _username;
+        listPlayer[_countPlayer].typePlayer = _typePlayer;
 
-            emit UpdatePlayer(_count, _username, _wallet, _typeplayer);
-        }else{
-            require(listArbiter[_count].wallet != address(0),"Player does not exist");
-            listArbiter[_count].status = _status;
-
-            emit UpdateArbiter(_count, _wallet , _status);
-        }
-
-        
+        emit UpdatePlayer(_countPlayer, _username, _wallet, _typePlayer);
     }
 
-    //  function updateArbiter(uint _countArbiter, address _wallet, bool _status) public onlyRole(ADMIN_ROLE){
-    //     require(listArbiter[_countArbiter].wallet != address(0),"Player does not exist");
-    //     require(_wallet != address(0),"Address does not exist");
+    function updateArbiter(uint128 _countArbiter, address _wallet, bool _status) public onlyRole(ADMIN_ROLE){
+        require(listArbiter[_countArbiter].wallet != address(0),"Player does not exist");
+        require(_wallet != address(0),"Address does not exist");
 
-    //     listArbiter[_countArbiter].wallet = _wallet;
-    //     listArbiter[_countArbiter].status = _status;
-
-    //     emit UpdateArbiter(_countArbiter, _wallet, _status);
-    // }
+        if(_status==true){
+            listArbiter[_countArbiter].wallet = _wallet;
+            listArbiter[_countArbiter].status = _status;
+        }else{
+            delete listArbiter[_countArbiter];
+        }
+        emit UpdateArbiter(_countArbiter, _wallet, _status);
+    }
 
     function deposit() public payable {}
 }

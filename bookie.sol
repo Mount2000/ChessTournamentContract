@@ -94,10 +94,10 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
 
-     function updatePlayer(uint128 _count, address _wallet, string memory _username, uint8 _typeplayer, bool _status) public onlyRole(ADMIN_ROLE){
+     function updatePlayerOrArbiter(uint128 _count, address _wallet, string memory _username, uint8 _typeplayer, bool _status) public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
-        require(_typeplayer>=0 && _typeplayer < 3 ,"Empty type");
+        require(_typeplayer>=0 && _typeplayer < 2 ,"Empty type");
 
         if(_typeplayer==uint8(TypePlayer.player)){
             require(listPlayer[_count].wallet != address(0),"Player does not exist");

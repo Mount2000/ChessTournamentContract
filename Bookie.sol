@@ -11,7 +11,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
     address payable withdrawWallet;
 
-    uint startTime;
+    uint public startTime;
     bool public tournamentStarted; 
     bool public isCancelled; 
     uint public tournamentType;
@@ -91,6 +91,10 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         _grantRole(ADMIN_ROLE, msg.sender);
 
         withdrawWallet = payable(msg.sender);
+    }
+
+    function setStartTime(uint _startTime) public onlyAdminOrArbiter{
+        startTime = _startTime;
     }
 
     function setMinPlayers(uint128 _minPlayers) public onlyRole(ADMIN_ROLE){

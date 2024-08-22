@@ -117,7 +117,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         tournamentType = _tournamentType;
     }
 
-    function createPlayer(string memory _username, uint8 _typePlayer) public payable checkMinPlayers checkMaxPlayers checkUsernameIsExist(_username){
+    function createPlayer(string memory _username, uint8 _typePlayer) 
+    public payable checkMinPlayers checkMaxPlayers checkIsCancelled checkStartTime checkTournamentStarted checkUsernameIsExist(_username){
         uint256 _registrationFee = feeConlecter.registrationFee();
         require(msg.sender != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
@@ -183,9 +184,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         emit UpdateArbiter(_countArbiter, _wallet, _status);
     }
 
-    function startTournament() public onlyAdminOrArbiter{
+    function startTournament() public checkStartTime onlyAdminOrArbiter{
         require(countPlayer==maxPlayers,"Player is not enough");
-        require(startTime <= block.timestamp,"The startTime was expired");
         tournamentStarted = true;
     }
 
@@ -201,19 +201,9 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         emit WithdrawWalletAdmin(address(this));
     }
 
-    function cancelTournament() public onlyAdminOrArbiter{
-        require(tournamentStarted, "Tournament has not started");
-        require(!isCancelled, "The tournament was cancelled");
+    function cancelTournament() public checkTournamentStarted checkIsCancelled onlyAdminOrArbiter{
         tournamentStarted = false;
         isCancelled = true;
-
-        for(uint128 i = 0; i < countPlayer; i++) {
-            Player memory player = listPlayer[i];
-            if (player.registrationFee > 0) {
-                (bool sent, ) = player.wallet.call{value: player.registrationFee}("");
-                require(sent, "Failed to send Ether");
-            }
-        }
 
         emit CancelTournament(address(this));
     }
@@ -258,6 +248,30 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         require(
             hasRole(ADMIN_ROLE, msg.sender) || hasRole(ARBITER_ROLE, msg.sender),
             "Caller is not an admin or an arbiter"
+        );
+    _;
+    }
+
+    modifier checkIsCancelled() {
+         require(
+            !isCancelled, 
+            "The tournament was cancelled"
+         );
+    _;
+    }
+
+    modifier checkStartTime() {
+        require(
+            startTime <= block.timestamp,
+            "The startTime was expired"
+        );
+    _;
+    }
+
+    modifier checkTournamentStarted() {
+        require(
+            tournamentStarted, 
+            "Tournament has not started"
         );
     _;
     }

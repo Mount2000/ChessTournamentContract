@@ -12,11 +12,11 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     address payable withdrawWallet;
 
     uint startTime;
-	bool public tournamentStarted; 
+    bool public tournamentStarted; 
     bool public isCancelled; 
     uint public tournamentType;
-	uint128 public minPlayers; 
-	uint128 public maxPlayers;
+    uint128 public minPlayers; 
+    uint128 public maxPlayers;
 
     uint128 countPlayer;
     uint128 countArbiter;

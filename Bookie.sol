@@ -14,9 +14,9 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     uint startTime;
 	bool public tournamentStarted; 
     bool public isCancelled; 
-    uint tournamentType;
-	uint128 minPlayers; 
-	uint128 maxPlayers;
+    uint public tournamentType;
+	uint128 public minPlayers; 
+	uint128 public maxPlayers;
 
     uint128 countPlayer;
     uint128 countArbiter;
@@ -93,16 +93,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         withdrawWallet = payable(msg.sender);
     }
 
-    function getMinPlayers() public view onlyRole(ADMIN_ROLE) returns (uint128) {
-        return minPlayers;
-    }
-
     function setMinPlayers(uint128 _minPlayers) public onlyRole(ADMIN_ROLE){
         minPlayers = _minPlayers;
-    }
-
-    function getMaxPlayers() public view onlyRole(ADMIN_ROLE) returns (uint128) {
-        return maxPlayers;
     }
 
     function setMaxPlayers(uint128 _maxPlayers) public onlyRole(ADMIN_ROLE){
@@ -115,10 +107,6 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
     function setPrizePool(uint256 _prizePool) public onlyRole(ADMIN_ROLE){
         prizePool = _prizePool;
-    }
-
-    function getTournamentType() public view onlyRole(ADMIN_ROLE) returns (uint) {
-        return tournamentType;
     }
 
     function setTournamentType(uint _tournamentType) public onlyRole(ADMIN_ROLE){

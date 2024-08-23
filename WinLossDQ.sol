@@ -24,6 +24,10 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
        bool _win
     );
 
+    event ApproveGameResult(
+       uint256 _roundId
+    );
+
     constructor(address _bookie) {
         bookie = Bookie(_bookie);
     }
@@ -53,6 +57,7 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
 
         if(checkApproved){
             gameResults[_roundId].approved = true;
+            emit ApproveGameResult(_roundId);
         }
     }
     

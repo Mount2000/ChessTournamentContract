@@ -160,6 +160,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         if(_typePlayer==1 && !adreesArbiterExists[_wallet]){
             createArbiter(_wallet);
+            emit CreateArbiter(_wallet);
         }
 
         emit UpdatePlayer(_countPlayer, _username, _wallet, _typePlayer);

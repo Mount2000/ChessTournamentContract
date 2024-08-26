@@ -12,14 +12,14 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     address payable withdrawWallet;
 
     uint public startTime;
-    bool public tournamentStarted; 
+	bool public tournamentStarted; 
     bool public isCancelled; 
     uint public tournamentType;
-    uint128 public minPlayers; 
-    uint128 public maxPlayers;
+	uint128 public minPlayers; 
+	uint128 public maxPlayers;
 
-    uint128 countPlayer;
-    uint128 countArbiter;
+    uint128 public countPlayer;
+    uint128 public countArbiter;
     
     uint256 public prizePool;
 
@@ -40,7 +40,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     mapping(string => bool) private usernameExists;
     mapping (uint128 => Player) public listPlayer;
     mapping (uint128 => Arbiter) public listArbiter;
-    mapping(address => bool) private adreesArbiterExists;
+    mapping(address => bool) public adreesArbiterExists;
 
     event CreatePlayer(
        string _username, 
@@ -208,7 +208,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         emit CancelTournament(address(this));
     }
 
-    function playerWithdraw(uint128 _idPlayer) public {
+    function playerWithdraw(uint128 _idPlayer) public onlyOwner{
         require(
             isCancelled,
             "Tournament has not cancelled"

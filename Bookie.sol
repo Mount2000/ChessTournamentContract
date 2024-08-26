@@ -43,6 +43,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     mapping(address => bool) public adreesArbiterExists;
 
     event CreatePlayer(
+       uint128 _countPlayer,
        string _username, 
        address _wallet, 
        uint256 _registrationFee, 
@@ -50,6 +51,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     );
 
     event CreateArbiter(
+       uint128 _countArbiter,
        address _wallet
     );
 
@@ -83,6 +85,10 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         address _feeConlecter,
         uint _startTime
     ){
+        require(
+            _startTime >= block.timestamp,
+            "The startTime was fail"
+        );
         startTime = _startTime;
         isCancelled = false;
         tournamentStarted = false;
@@ -93,23 +99,22 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         withdrawWallet = payable(msg.sender);
     }
 
-    function setStartTime(uint _startTime) public onlyAdminOrArbiter{
+    function setTimeAndMinMax(uint _startTime, uint128 _minPlayers, uint128 _maxPlayers) public checkMinPlayers checkMaxPlayers onlyRole(ADMIN_ROLE){
+        require(
+            _startTime >= block.timestamp,
+            "The startTime was fail"
+        );
+        
         startTime = _startTime;
-    }
-
-    function setMinPlayers(uint128 _minPlayers) public onlyRole(ADMIN_ROLE){
         minPlayers = _minPlayers;
-    }
-
-    function setMaxPlayers(uint128 _maxPlayers) public onlyRole(ADMIN_ROLE){
         maxPlayers = _maxPlayers;
     }
 
-    function addPrizePool(uint256 _prizePool) public onlyRole(ADMIN_ROLE){
+    function addPrizePool(uint256 _prizePool) public onlyOwner{
         prizePool += _prizePool;
     }
 
-    function setPrizePool(uint256 _prizePool) public onlyRole(ADMIN_ROLE){
+    function setPrizePool(uint256 _prizePool) public onlyOwner{
         prizePool = _prizePool;
     }
 
@@ -118,7 +123,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
     function createPlayer(string memory _username, uint8 _typePlayer) 
-    public payable checkMinPlayers checkMaxPlayers checkIsCancelled checkStartTime checkTournamentStarted checkUsernameIsExist(_username){
+    public payable checkMinPlayers checkMaxPlayers checkIsCancelled checkStartTime checkUsernameIsExist(_username){
         uint256 _registrationFee = feeConlecter.registrationFee();
         require(msg.sender != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
@@ -129,8 +134,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         listPlayer[countPlayer] = Player(_username,msg.sender, _registrationFee, _typePlayer);
         
+        emit CreatePlayer(countPlayer,_username, msg.sender, _registrationFee, _typePlayer);   
         countPlayer++;
-        emit CreatePlayer(_username, msg.sender, _registrationFee, _typePlayer);   
     }
 
     function createArbiter(address _wallet) public checkMinPlayers checkMaxPlayers onlyRole(ADMIN_ROLE){
@@ -138,9 +143,9 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         _grantRole(ARBITER_ROLE, _wallet);
         listArbiter[countArbiter] = Arbiter(_wallet,true);
         adreesArbiterExists[_wallet] = true;
-        countArbiter++;
 
-        emit CreateArbiter(_wallet);
+        emit CreateArbiter(countArbiter,_wallet);
+        countArbiter++;
     }
 
     function updatePlayer(uint128 _countPlayer, address _wallet, string memory _username, uint8 _typePlayer) checkMinPlayers checkMaxPlayers public onlyRole(ADMIN_ROLE){
@@ -160,7 +165,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         if(_typePlayer==1 && !adreesArbiterExists[_wallet]){
             createArbiter(_wallet);
-            emit CreateArbiter(_wallet);
+            emit CreateArbiter(countArbiter,_wallet);
+            countArbiter++;
         }
 
         emit UpdatePlayer(_countPlayer, _username, _wallet, _typePlayer);
@@ -185,13 +191,13 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         emit UpdateArbiter(_countArbiter, _wallet, _status);
     }
 
-    function startTournament() public checkStartTime onlyAdminOrArbiter{
-        require(countPlayer==maxPlayers,"Player is not enough");
+    function startTournament() public checkStartTime onlyRole(ADMIN_ROLE){
+        require(countPlayer==maxPlayers,"Players is not enough");
         tournamentStarted = true;
     }
 
     function withdrawWalletAdmin() public onlyOwner {
-        require(withdrawWallet != address(0), "Withdraw wallet not set");
+        require(withdrawWallet != address(0), "WithdrawWallet does not set");
 
         uint256 contractBalance = address(this).balance;
         require(contractBalance > 0, "No balance to withdraw");
@@ -216,7 +222,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         );
         require(
            listPlayer[_idPlayer].registrationFee>0,
-            "Tournament has not cancelled"
+            "Fee is not enough"
         );
 
         require(
@@ -231,12 +237,12 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     }
 
     modifier checkMaxPlayers(){
-        require(maxPlayers>0,"maxPlayers is not set yet");
+        require(maxPlayers>minPlayers,"MaxPlayer must be greater than minPlayer");
     _;
     }
 
     modifier checkMinPlayers(){
-        require(minPlayers>0,"minPlayers is not set yet");
+        require(minPlayers>0,"MinPlayer must be greater than 0");
     _;
     }
 

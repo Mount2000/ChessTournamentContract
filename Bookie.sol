@@ -196,7 +196,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         tournamentStarted = true;
     }
 
-    function withdrawWalletAdmin() public onlyOwner {
+    function withdrawWalletAdmin() public payable onlyOwner {
         require(withdrawWallet != address(0), "WithdrawWallet does not set");
 
         uint256 contractBalance = address(this).balance;
@@ -215,7 +215,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         emit CancelTournament(address(this));
     }
 
-    function playerWithdraw(uint128 _idPlayer) public onlyOwner{
+    function playerWithdraw(uint128 _idPlayer) public payable onlyOwner{
         require(
             isCancelled,
             "Tournament has not cancelled"

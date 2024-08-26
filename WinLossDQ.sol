@@ -61,10 +61,15 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
         }
     }
     
-    function isResultApproved(uint256 _roundId,bool _approve) public onlyArbiter{
+    function setApprove(uint256 _roundId,bool _approve) public onlyArbiter{
         require(gameResults[_roundId].winner != address(0),"Id does not exist");
         
         gameResults[_roundId].approvals[msg.sender] = _approve;
+    }
+
+    function isResultApproved(uint256 _roundId) public view returns (bool){
+        require(gameResults[_roundId].winner != address(0),"Id does not exist");
+        return gameResults[_roundId].approved;
     }
 
     function getWinner(uint256 _roundId) public view returns (address, bool){

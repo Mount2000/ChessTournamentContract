@@ -17,6 +17,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     uint public tournamentType;
 	uint128 public minPlayers; 
 	uint128 public maxPlayers;
+    address public playerWinner;
 
     uint128 public countPlayer;
     uint128 public countArbiter;
@@ -116,6 +117,11 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
     function setPrizePool(uint256 _prizePool) public onlyOwner{
         prizePool = _prizePool;
+    }
+
+    function setPlayerWinner(address _playerWinner) public onlyRole(ADMIN_ROLE){
+        require(_playerWinner != address(0),"Address does not exist");
+        playerWinner = _playerWinner;
     }
 
     function setTournamentType(uint _tournamentType) public onlyRole(ADMIN_ROLE){
@@ -234,6 +240,15 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         require(sent, "Failed to send Ether");
 
         emit PlayerWithdraw(address(this),_idPlayer);
+    }
+
+    function playerWinnerWithdraw(address _playerWinner) public payable onlyOwner{
+        require(_playerWinner != address(0),"Address player winner does not exist");
+        require(playerWinner==_playerWinner,"The address is not the winning player");
+
+        // (bool sent, ) = withdrawWallet.call{value: contractBalance}("");
+        // require(sent, "Failed to send Ether");
+
     }
 
     modifier checkMaxPlayers(){

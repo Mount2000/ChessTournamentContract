@@ -12,12 +12,12 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
         bool win;
         bool approved;
         mapping(address => bool) approvals;
+        uint32[] moves;
     }
 
     Bookie public bookie;
     uint256 public game;
     mapping(uint256 => GameResult) public gameResults;
-    uint32[] public moves;
 
     event Moves(
         uint256 _gameId,
@@ -48,7 +48,7 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
     
     function setMoves(uint256 _gameId, uint32 _move) external  {
         require(gameResults[_gameId].winner != address(0), "The game does not exist.");
-        moves.push(_move);
+        gameResults[_gameId].moves.push(_move);
         emit Moves(_gameId,_move);
     }
 

@@ -114,12 +114,10 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         maxPlayers = _maxPlayers;
     }
 
-    function addPrizePool(uint256 _prizePool) public onlyOwner{
-        prizePool += _prizePool;
-    }
-
-    function setPrizePool(uint256 _prizePool) public onlyOwner{
-        prizePool = _prizePool;
+    function addPrizePool(uint256 _prize) public payable onlyOwner{
+        require(address(this).balance > _prize, "Insufficient contract balance");
+        require(_prize == msg.value, "Price is not enough");
+        prizePool += _prize;
     }
 
     function setPlayerWinner(address _playerWinner) public onlyRole(ADMIN_ROLE){
@@ -142,6 +140,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         listPlayer[countPlayer] = Player(_username,msg.sender, _registrationFee);
         
+        prizePool += msg.value;
+
         emit CreatePlayer(countPlayer,_username, msg.sender, _registrationFee);   
         countPlayer++;
     }
@@ -167,7 +167,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         emit UpdatePlayer(_countPlayer, _username, _wallet);
     }
 
-    function updateArbiter(uint128 _countArbiter, address _wallet, bool _status) public checkMinPlayers checkMaxPlayers onlyRole(ADMIN_ROLE){
+    function updateArbiter(uint128 _countArbiter, address _wallet, bool _status) public onlyRole(ADMIN_ROLE){
         require(listArbiter[_countArbiter].wallet != address(0),"Player does not exist");
         require(_wallet != address(0),"Address does not exist");
         
@@ -200,6 +200,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         (bool sent, ) = withdrawWallet.call{value: contractBalance}("");
         require(sent, "Failed to send Ether");
 
+        prizePool = 0;
+
         emit WithdrawWalletAdmin(address(this));
     }
 
@@ -227,6 +229,8 @@ contract Bookie is AccessControl,Ownable(msg.sender){
 
         (bool sent, ) = msg.sender.call{value: listPlayer[_idPlayer].registrationFee}("");
         require(sent, "Failed to send Ether");
+
+        prizePool -= listPlayer[_idPlayer].registrationFee;
 
         emit PlayerWithdraw(address(this),_idPlayer);
     }

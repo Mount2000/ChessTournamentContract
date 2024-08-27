@@ -2,10 +2,11 @@
 pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./VRFRandomNumber.sol";
 import "./WinLossDQ.sol";
 
-contract Maker is AccessControl{
+contract Maker is Ownable(msg.sender), AccessControl{
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     WinLossDQ winLossDQ;
@@ -22,11 +23,11 @@ contract Maker is AccessControl{
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
         bookie = Bookie(_bookie);
-        require(bookie.tournamentStarted(),"Tournament is not started yet");
         winLossDQ = WinLossDQ(_winLossDQ);
     }
 
     function setPosition(uint randomNumber) public onlyRole(ADMIN_ROLE){
+        require(bookie.tournamentStarted(),"Tournament is not started yet");
         currentRound++;
         require(rounds[1].length == 0 && currentRound == 1, "Position is already set");
         require(randomNumber != 0, "Random number did not set");

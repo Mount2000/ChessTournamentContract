@@ -16,7 +16,7 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
     }
 
     Bookie public bookie;
-    uint256 public roundCounter;
+    uint256 public game;
     mapping(uint256 => GameResult) public gameResults;
 
     event SubmitGameResult(
@@ -25,7 +25,7 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
     );
 
     event ApproveGameResult(
-       uint256 _roundId
+       uint256 _gameId
     );
 
     constructor(address _bookie) {
@@ -34,21 +34,21 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
 
     function submitGameResult(address _winner, bool _win) public onlyArbiter {
         require(_winner != address(0),"Address does not exist");
-        gameResults[roundCounter].winner = _winner;
-        gameResults[roundCounter].win = _win;
+        gameResults[game].winner = _winner;
+        gameResults[game].win = _win;
         
-        roundCounter++;
+        game++;
         emit SubmitGameResult(_winner,_win);
     }
 
-    function approveGameResult(uint256 _roundId) public onlyArbiter{
+    function approveGameResult(uint256 _gameId) public onlyArbiter{
         uint128 countArbiter = bookie.countArbiter();
         bool checkApproved = true;
 
         for (uint128 i = 0; i<countArbiter; i++){
            (address arbiter,bool status) = bookie.listArbiter(i); 
             if(status){
-                if(!gameResults[_roundId].approvals[arbiter]){
+                if(!gameResults[_gameId].approvals[arbiter]){
                     checkApproved = false;
                     break ;
                 }
@@ -56,26 +56,26 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
         }
 
         if(checkApproved){
-            gameResults[_roundId].approved = true;
-            emit ApproveGameResult(_roundId);
+            gameResults[_gameId].approved = true;
+            emit ApproveGameResult(_gameId);
         }
     }
     
-    function setApprove(uint256 _roundId,bool _approve) public onlyArbiter{
-        require(gameResults[_roundId].winner != address(0),"Id does not exist");
+    function setApprove(uint256 _gameId,bool _approve) public onlyArbiter{
+        require(gameResults[_gameId].winner != address(0),"Id does not exist");
         
-        gameResults[_roundId].approvals[msg.sender] = _approve;
+        gameResults[_gameId].approvals[msg.sender] = _approve;
     }
 
-    function isResultApproved(uint256 _roundId) public view returns (bool){
-        require(gameResults[_roundId].winner != address(0),"Id does not exist");
-        return gameResults[_roundId].approved;
+    function isResultApproved(uint256 _gameId) public view returns (bool){
+        require(gameResults[_gameId].winner != address(0),"Id does not exist");
+        return gameResults[_gameId].approved;
     }
 
-    function getWinner(uint256 _roundId) public view returns (address, bool){
-        require(gameResults[_roundId].approved,"The results have not been approved");
+    function getWinner(uint256 _gameId) public view returns (address, bool){
+        require(gameResults[_gameId].approved,"The results have not been approved");
         
-        return (gameResults[_roundId].winner, gameResults[_roundId].win);
+        return (gameResults[_gameId].winner, gameResults[_gameId].win);
     }
 
 

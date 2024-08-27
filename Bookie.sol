@@ -97,7 +97,13 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         withdrawWallet = payable(msg.sender);
     }
 
-    function setTimeAndMinMax(uint _startTime, uint128 _minPlayers, uint128 _maxPlayers) public checkMinPlayers checkMaxPlayers onlyRole(ADMIN_ROLE){
+    function setTimeAndMinMax(uint _startTime, uint128 _minPlayers, uint128 _maxPlayers) public onlyRole(ADMIN_ROLE){
+        require(
+            _minPlayers>0,
+            "MinPlayer must be greater than 0");
+        require(
+            _maxPlayers>_minPlayers,
+            "MaxPlayer must be greater than minPlayer");
         require(
             _startTime >= block.timestamp,
             "The startTime was fail"

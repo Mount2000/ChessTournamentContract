@@ -7,7 +7,6 @@ import "./bookie.sol";
 
 contract WinLossDQ is Ownable(msg.sender) , AccessControl{
 
-
     struct GameResult {
         address winner;
         bool win;
@@ -18,6 +17,12 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
     Bookie public bookie;
     uint256 public game;
     mapping(uint256 => GameResult) public gameResults;
+    uint32[] public moves;
+
+    event Moves(
+        uint256 _gameId,
+        uint32 _move
+    );
 
     event SubmitGameResult(
        address _winner, 
@@ -39,6 +44,12 @@ contract WinLossDQ is Ownable(msg.sender) , AccessControl{
         
         game++;
         emit SubmitGameResult(_winner,_win);
+    }
+    
+    function setMoves(uint256 _gameId, uint32 _move) external  {
+        require(gameResults[_gameId].winner != address(0), "The game does not exist.");
+        moves.push(_move);
+        emit Moves(_gameId,_move);
     }
 
     function approveGameResult(uint256 _gameId) public onlyArbiter{

@@ -9,7 +9,9 @@ contract FeeCollector is Ownable(msg.sender) , AccessControl{
     uint256 public registrationFee ;
     event updatedPlatformFee(uint256 platformFee) ;
     event updatedRegistrationFee(uint256 registrationFee) ;
-    constructor() {
+     constructor(uint256 _platformFee, uint256 _registrationFee) {
+        platformFee = _platformFee;
+        registrationFee = _registrationFee;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMINER, msg.sender);
     }

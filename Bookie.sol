@@ -30,7 +30,6 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         string username;
         address wallet;
         uint256 registrationFee;
-        uint8 typePlayer; 
     }
 
     struct Arbiter{
@@ -47,8 +46,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
        uint128 _countPlayer,
        string _username, 
        address _wallet, 
-       uint256 _registrationFee, 
-       uint8 _typePlayer
+       uint256 _registrationFee
     );
 
     event CreateArbiter(
@@ -59,8 +57,7 @@ contract Bookie is AccessControl,Ownable(msg.sender){
     event UpdatePlayer(
        uint _countPlayer, 
        string _username, 
-       address _wallet, 
-       uint8 _typePlayer
+       address _wallet
     );
 
     event UpdateArbiter(
@@ -128,19 +125,18 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         tournamentType = _tournamentType;
     }
 
-    function createPlayer(string memory _username, uint8 _typePlayer) 
+    function createPlayer(string memory _username) 
     public payable checkMinPlayers checkMaxPlayers checkIsCancelled checkStartTime checkUsernameIsExist(_username){
         uint256 _registrationFee = feeConlecter.registrationFee();
         require(msg.sender != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
-        require(_typePlayer>=0 && _typePlayer < 2 ,"Empty type");
         require(_registrationFee==msg.value,"Fee is not enough");
 
         usernameExists[_username] = true;
 
-        listPlayer[countPlayer] = Player(_username,msg.sender, _registrationFee, _typePlayer);
+        listPlayer[countPlayer] = Player(_username,msg.sender, _registrationFee);
         
-        emit CreatePlayer(countPlayer,_username, msg.sender, _registrationFee, _typePlayer);   
+        emit CreatePlayer(countPlayer,_username, msg.sender, _registrationFee);   
         countPlayer++;
     }
 
@@ -154,28 +150,15 @@ contract Bookie is AccessControl,Ownable(msg.sender){
         countArbiter++;
     }
 
-    function updatePlayer(uint128 _countPlayer, address _wallet, string memory _username, uint8 _typePlayer) checkMinPlayers checkMaxPlayers public onlyRole(ADMIN_ROLE){
+    function updatePlayer(uint128 _countPlayer, address _wallet, string memory _username) checkMinPlayers checkMaxPlayers public onlyRole(ADMIN_ROLE){
         require(_wallet != address(0),"Wallet does not exist");
         require(bytes(_username).length != 0,"Empty username");
-        require(_typePlayer>=0 && _typePlayer < 2 ,"Empty type");
         require(listPlayer[_countPlayer].wallet != address(0),"Player does not exist");
 
         listPlayer[_countPlayer].wallet = _wallet;
         listPlayer[_countPlayer].username = _username;
-        listPlayer[_countPlayer].typePlayer = _typePlayer;
 
-        if(_typePlayer==0 && adreesArbiterExists[_wallet]){
-             _revokeRole(ARBITER_ROLE, _wallet);
-            adreesArbiterExists[_wallet] = false;
-        }
-
-        if(_typePlayer==1 && !adreesArbiterExists[_wallet]){
-            createArbiter(_wallet);
-            emit CreateArbiter(countArbiter,_wallet);
-            countArbiter++;
-        }
-
-        emit UpdatePlayer(_countPlayer, _username, _wallet, _typePlayer);
+        emit UpdatePlayer(_countPlayer, _username, _wallet);
     }
 
     function updateArbiter(uint128 _countArbiter, address _wallet, bool _status) public checkMinPlayers checkMaxPlayers onlyRole(ADMIN_ROLE){
